@@ -34,7 +34,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "jose-ryu-footballshop.pbp.cs.ui.ac.id"]
 
-CSRF_TRUSTED_ORIGINS = [ "jose-ryu-footballshop.pbp.cs.ui.ac.id" ]
+CSRF_TRUSTED_ORIGINS = ["https://jose-ryu-footballshop.pbp.cs.ui.ac.id"]
 
 # Application definition
 
