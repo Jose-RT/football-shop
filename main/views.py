@@ -22,7 +22,7 @@ def show_main(request):
 
     context = {
         "products": products,
-        'username': request.user.username,
+        'user': request.user.username,
         'shop': 'Football Shop',
         'name': 'Manchaland Store',
         'class': 'PBP E',
