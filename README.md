@@ -1,4 +1,4 @@
-Tutorial 2:
+Tugas 2:
 1. Implementasi Checklist
     1. Step-step awal dengan Git, env, dan instalasi Django
     2. Membuat proyek Django baru
@@ -21,7 +21,7 @@ Tutorial 2:
     Django memiliki banyak fitur yang siap dipakai (authorization, admin,d ll) yang memudahkan proyek. Selain itu dokumentasi masalah dan pertanyaan-pertanyaan banyak karena banyak dipakai.
 
 
-Tutorial 3:
+Tugas 3:
 1. Data delivery 
     Data delivery penting untuk konsistensi dan data yang lebih stabil dan cepat.
 2. XML atau JSON
@@ -34,3 +34,24 @@ Tutorial 3:
     1. Membuat form dengan semua field dari models
     2. Membuat halaman detail menampilkan data
     3. Fixing HTML yang jujur berantakan
+
+Tugas 4:
+1. AuthenticationForm 
+    Django AuthenticationForm adalah form dari Django untuk autentikasi username dan password untuk login. Kelebihannya adalah ketersediannya, kekurangannya tidak ada sistem-sistem seperti Captcha dan 2FA
+2. Autentikasi dan Otorisasi
+    Autentikasi memverfikasi identitas, cth: django.contrib.auth, authenticate(), login()
+    Otorisasi adalah mengecek izin/otoritas yang dimiliki identitas tersebut, cth: is_superuser
+3. Session dan Cookies
+    Session sederhana dan dapat diakses dari JS. Kekurangannya adalah sizenya yang kecil.
+    Cookies disimpan di server side dan lebih besar sizenya. Kekurangannya adalah dalam storage.
+4. Keamanan Cookies
+    Tidak sepenuhnya aman dengan adanya risiko hal-hal seperti CSRF. Sarannya adalah dengan memvalidasi input dan tidak menyimpan informasi/data penting atau sesnitif di dalam Cookies.
+5. Implementasi Checklist
+    1. Membuat fungsi registrasi dengan HTMLnya.
+    2. Membuat fungsi login dengan HTMLnya.
+    3. Membuat fungsi logout dengan HTMLnya.
+    4. Mengatur URL
+    5. Restrict akses ke akun yang sudah registrasi
+    6. Mendaftarkan cookies untuk last login 
+    7. Memasukan user ke model
+    8. Migrate (jangan lupa)
