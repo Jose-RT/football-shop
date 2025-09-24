@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Manchaland Store{% endblock %}
+
+{% block content %}
+    <h2>{{ product.name }}</h2>
+    <img src="{{ product.thumbnail }}" alt="{{ product.name }}" width="300">
+    <p><strong>Price:</strong> Rp {{ product.price }}</p>
+    <p><strong>Category:</strong> {{ product.category }}</p>
+    {% if product.brand %}
+        <p><strong>Brand:</strong> {{ product.brand }}</p>
+    {% endif %}
+    <p><strong>Stock:</strong> {{ product.stock }}</p>
+    <p>{{ product.description }}</p>
+    <a href="{% url 'product_list' %}" class="btn">Back to Products</a>
+{% endblock %}
