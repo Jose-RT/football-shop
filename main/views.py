@@ -22,13 +22,12 @@ def show_main(request):
 
     context = {
         "products": products,
-        'name': request.user.username,
+        'username': request.user.username,
         'shop': 'Football Shop',
         'name': 'Manchaland Store',
         'class': 'PBP E',
         'last_login': request.COOKIES.get('last_login', 'Never')
     }
-
     return render(request, "main.html", context)
 
 def create_product(request):
