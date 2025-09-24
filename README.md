@@ -19,3 +19,18 @@ Tutorial 2:
     Migrasi di Django terbagi menjadi makemigrations yang membuat file migrasi dari model lalu migrate melakukan migrasi itu sendiri yang mengubah sesuai model.
 5. Mengapa Django
     Django memiliki banyak fitur yang siap dipakai (authorization, admin,d ll) yang memudahkan proyek. Selain itu dokumentasi masalah dan pertanyaan-pertanyaan banyak karena banyak dipakai.
+
+
+Tutorial 3:
+1. Data delivery 
+    Data delivery penting untuk konsistensi dan data yang lebih stabil dan cepat.
+2. XML atau JSON
+    JSON lebih banyak dipakai karena native di JavaScript. Antara JSON dan XML tentunya banyak faktor yang menentukan. Namun secara keseluruhan JSON memiliki lebih banyak pro daripada XML yang biasanya dipakai untuk integrasi sistem lama saja/legacy.
+3. is_valid()
+    is_valid dipakai pada form untuk melakukan validasi dengan membersihkan data. Kita membutuhkan sehingga data-data yang "kotor" misalnya format, nilai yang tidak boleh, dll tidak masuk sistem.
+4. CSRF
+    CSRF (Cross-Site Request Forgery) terjadi ketika penyerang membuat permintaan dari site lain atas nama pengguna yang sudah terautentikasi di site target. Kalau tidak ada CSRF token, maka hal-hal speerti mengubah password, melakukan transfer, dan menghapus data dapat terjadi.
+5. Implementasi Checklist
+    1. Membuat form dengan semua field dari models
+    2. Membuat halaman detail menampilkan data
+    3. Fixing HTML yang jujur berantakan

@@ -3,6 +3,13 @@
 <h1>Manchaland Store</h1>
 <h5>PBP E</h5>
 
+<p>Logged in as: <strong>{{ username }}</strong></p>
+<p>Last login: <strong>{{ last_login }}</strong></p>
+<p>Sesi terakhir login: <strong>{{ last_login }}</strong></p>
+<a href="{% url 'main:logout' %}">
+  <button>Logout</button>
+
+
 <p><a href="{% url 'main:create_product' %}" style="padding:8px 12px; background:#007bff; color:white; border-radius:5px; text-decoration:none;">Add Product</a></p>
 
 <div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:20px;">
@@ -19,5 +26,13 @@
     {% empty %}
         <p>No products available.</p>
     {% endfor %}
+
+    <a href="?filter=all">
+        <button type="button">All Articles</button>
+    </a>
+    <a href="?filter=my">
+        <button type="button">My Articles</button>
+    </a> 
+</a>
 </div>
 {% endblock %}

@@ -14,4 +14,11 @@
     <p>{{ product.description }}</p>
     <a href="{% url 'main:show_main' %}" style="display:inline-block; padding:6px 10px; background:#007bff; color:white; border-radius:5px; text-decoration:none;">
     Back to Products </a>
+
+    {% if news.user %}
+        <p>Poster: {{ news.user.username }}</p>
+    {% else %}
+        <p>Poster: Anonymous</p>
+    {% endif %}
+
 {% endblock %}
