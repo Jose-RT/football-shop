@@ -7,7 +7,7 @@ from django.core import serializers
 def show_main(request):
     products = Product.objects.all()
     context = {
-        "items": products,
+        "products": products,
         'shop': 'Football Shop',
         'name': 'Manchaland Store',
         'class': 'PBP E',
@@ -22,7 +22,7 @@ def create_product(request):
         return redirect("main:show_main")
     return render(request, "create_product.html", {"form": form})
 
-def show_product(request, id):
+def product_detail(request, id):
     product = get_object_or_404(Product, pk=id)
     return render(request, "product_detail.html", {"product": product})
 

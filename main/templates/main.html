@@ -3,23 +3,21 @@
 <h1>Manchaland Store</h1>
 <h5>PBP E</h5>
 
-<p><a href="{% url 'main:create_product' %}"><button>Add Product</button></a></p>
+<p><a href="{% url 'main:create_product' %}" style="padding:8px 12px; background:#007bff; color:white; border-radius:5px; text-decoration:none;">Add Product</a></p>
 
-{% if not products %}
-  <p>No product available.</p>
-{% else %}
-  <ul>
-  {% for product in products %}
-    <li>
-        <img src="{{ product.thumbnail }}" alt="{{ product.name }}" style="width:200px; height:200px; object-fit:contain;">
-        <h3>{{ product.name }}</h3>
-        <p><strong>Rp {{ product.price }}</strong></p>
-        <p>Stock: {{ product.stock }}</p>
-        <a href="{% url 'product_detail' product.id %}" class="btn">Detail</a>
-        <a href="{% url 'main:show_json_by_id' product.id %}"><button>JSON</button></a>
-        <a href="{% url 'main:show_xml_by_id' product.id %}"><button>XML</button></a>
-    </li>
-  {% endfor %}
-  </ul>
-{% endif %}
+<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:20px;">
+    {% for product in products %}
+        <div style="background:white; border:1px solid #ddd; border-radius:10px; padding:15px; width:220px;">
+            <img src="{{ product.thumbnail }}" alt="{{ product.name }}" style="width:200px; height:200px; object-fit:contain;">
+            <h3>{{ product.name }}</h3>
+            <p><strong>Rp {{ product.price }}</strong></p>
+            <p>Stock: {{ product.stock }}</p>
+            <a href="{% url 'main:product_detail' product.id %}" style="display:inline-block; padding:6px 10px; background:#28a745; color:white; border-radius:5px; text-decoration:none;">
+                Detail
+            </a>
+        </div>
+    {% empty %}
+        <p>No products available.</p>
+    {% endfor %}
+</div>
 {% endblock %}
