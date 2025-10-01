@@ -8,8 +8,8 @@
     <div class="col-lg-8">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h4 class="card-title mb-3">Add Product</h4>
-          <p class="text-muted mb-4">Isi data produk baru untuk ditambahkan ke toko.</p>
+          <h4 class="card-title mb-3">Edit Product</h4>
+          <p class="text-muted mb-4">Ubah informasi untuk <strong>{{ product.name }}</strong></p>
 
           <form method="post" novalidate>
             {% csrf_token %}
@@ -28,7 +28,7 @@
 
             <div class="d-flex justify-content-end gap-2">
               <a href="{% url 'main:show_main' %}" class="btn btn-outline-secondary">Cancel</a>
-              <button type="submit" class="btn btn-soft-purple">Add Product</button>
+              <button type="submit" class="btn btn-success">Save Changes</button>
             </div>
           </form>
 

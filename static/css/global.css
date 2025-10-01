@@ -1,0 +1,52 @@
+.btn-pink {
+  background-color: #ff4d6d; /* pink-red */
+  color: #fff;
+  border: 1px solid #ff4d6d;
+}
+
+.btn-pink:hover,
+.btn-pink:focus,
+.btn-pink:active {
+  background-color: #ff3550;
+  border-color: #ff3550;
+  color: #fff;
+  box-shadow: 0 0 0 0.2rem rgba(255,53,80,0.18);
+}
+
+.btn-outline-pink {
+  color: #ff4d6d;
+  border-color: #ff4d6d;
+  background-color: transparent;
+}
+.btn-outline-pink:hover {
+  background-color: #ff4d6d;
+  color: #fff;
+}
+
+.btn-danger, .btn-pink {
+  transition: all .12s ease-in-out;
+}
+
+.btn-purple {
+  background-color: #6f42c1;
+  color: #fff;
+  border: 1px solid #6f42c1;
+}
+.btn-purple:hover { background-color: #5a33a8; border-color: #5a33a8; }
+
+.btn-deepred {
+  background-color: #b71c1c;
+  color: #fff;
+  border: 1px solid #b71c1c;
+}
+.btn-deepred:hover { background-color: #971515; border-color:#971515; }
+
+.btn-soft-purple {
+  color: #6f42c1;
+  background-color: rgba(111,66,193,0.08);
+  border: 1px solid rgba(111,66,193,0.18);
+}
+.btn-soft-purple:hover {
+  background-color: #6f42c1;
+  color: #fff;
+}

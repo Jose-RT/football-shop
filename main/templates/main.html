@@ -1,36 +1,85 @@
 {% extends 'base.html' %}
+{% load static %}
+
+
 {% block content %}
-<h1>Manchaland Store</h1>
-<h5>PBP E</h5>
+{% include 'navbar.html' %}
 
-<p>Logged in as: <strong>{{ username }}</strong></p>
-<p>Last login: <strong>{{ last_login }}</strong></p>
-<a href="{% url 'main:logout' %}">
-  <button>Logout</button>
+<div class="container my-4 pt-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">Manchaland Store</h1>
+      <small class="text-muted">PBP E</small>
+      <div class="mt-2">
+        <span class="me-2">Logged in as: <strong>{{ user.username }}</strong></span>
+        <span class="text-muted">| Last login: <strong>{{ last_login }}</strong></span>
+      </div>
+    </div>
 
+    <div class="mt-3 mt-md-0 d-flex gap-2">
+      <a href="{% url 'main:create_product' %}" class="btn btn-soft-purple">Add Product</a>
+      <a href="{% url 'main:logout' %}" class="btn btn-outline-danger">Logout</a>
+    </div>
+  </div>
 
-<p><a href="{% url 'main:create_product' %}" style="padding:8px 12px; background:#007bff; color:white; border-radius:5px; text-decoration:none;">Add Product</a></p>
+  <!-- Filter buttons -->
+  <div class="mb-4">
+    <div class="btn-group" role="group" aria-label="filter">
+      <a href="?filter=all"
+         class="btn {% if not request.GET.filter or request.GET.filter == 'all' %}btn-pink{% else %}btn-outline-secondary{% endif %}">
+        All Products
+      </a>
+      <a href="?filter=my"
+         class="btn {% if request.GET.filter == 'my' %}btn-pink{% else %}btn-outline-secondary{% endif %}">
+        My Products
+      </a>
+    </div>
+  </div>
 
-<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:20px;">
-    {% for product in products %}
-        <div style="background:white; border:1px solid #ddd; border-radius:10px; padding:15px; width:220px;">
-            <img src="{{ product.thumbnail|default_if_none:'/static/noimage.png' }}" alt="{{ product.name }}" style="width:200px; height:200px; object-fit:contain;">
-            <h3>{{ product.name }}</h3>
-            <p><strong>Rp {{ product.price }}</strong></p>
-            <p>Stock: {{ product.stock }}</p>
-            <a href="{% url 'main:product_detail' product.id %}" style="display:inline-block; padding:6px 10px; background:#28a745; color:white; border-radius:5px; text-decoration:none;">
-                Detail
-            </a>
+  {% if not products %}
+    <div class="card text-center p-5">
+      <img src="{% static 'image/No-products.png' %}" class="mx-auto mb-3" style="width:160px" alt="no products">
+      <h5 class="mb-2">No products available</h5>
+      <p class="text-muted mb-3">Be the first to add a product to Manchaland!</p>
+      <a href="{% url 'main:create_product' %}" class="btn btn-soft-purple">Add Product</a>
+    </div>
+  {% else %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+      {% for product in products %}
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          {% if product.thumbnail %}
+            <img src="{{ product.thumbnail }}" class="card-img-top" style="object-fit:contain; height:220px;" alt="{{ product.name }}">
+          {% else %}
+            <img src="{% static 'image/no-products.png' %}" class="card-img-top" style="object-fit:contain; height:220px;" alt="no image">
+          {% endif %}
+
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title mb-1">{{ product.name }}</h5>
+            <p class="text-muted small mb-2">{{ product.category }}</p>
+            <p class="fw-bold text-success mb-2">Rp {{ product.price }}</p>
+            <p class="text-truncate mb-3" style="max-height:3.6em;">{{ product.description }}</p>
+
+            <div class="mt-auto d-flex justify-content-between align-items-center">
+              <a href="{% url 'main:product_detail' product.id %}" class="btn btn-sm btn-outline-primary">Detail</a>
+
+              <div class="d-flex gap-2">
+                {% if product.user and product.user == user %}
+                  <a href="{% url 'main:product_edit' product.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+
+                  <form method="post" action="{% url 'main:product_delete' product.id %}" onsubmit="return confirm('Delete this product?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
         </div>
-    {% empty %}
-        <p>No products available.</p>
-    {% endfor %}
-
-    <a href="?filter=all">
-        <button type="button">All Articles</button>
-    </a>
-    <a href="?filter=my">
-        <button type="button">My Articles</button>
-    </a> 
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 </div>
 {% endblock %}

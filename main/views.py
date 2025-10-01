@@ -5,8 +5,8 @@ from main.models import Product
 from django.http import HttpResponse
 from django.core import serializers
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -47,6 +47,36 @@ def create_product(request):
 def product_detail(request, id):
     product = get_object_or_404(Product, pk=id)
     return render(request, "product_detail.html", {"product": product})
+
+@login_required(login_url=reverse_lazy('main:login'))
+def edit_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+    
+    # hanya pemilik boleh edit
+    if product.user and product.user != request.user:
+        return HttpResponseForbidden("You are not allowed to edit this product.")
+
+    form = ProductForm(request.POST or None, instance=product)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect('main:show_main')
+
+    return render(request, 'edit_product.html', {'form': form, 'product': product})
+
+@login_required(login_url=reverse_lazy('main:login'))
+def delete_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+
+    # hanya pemilik boleh delete
+    if product.user and product.user != request.user:
+        return HttpResponseForbidden("You are not allowed to delete this product.")
+
+    if request.method == "POST":
+        product.delete()
+        return redirect('main:show_main')
+
+    # kalau ingin halaman ada konfirmasi delete, render template konfirmasi
+    return render(request, 'confirm_delete_product.html', {'product': product})
 
 # XML, JSON, XML by ID, dan JSON by ID.
 def show_xml(request):
