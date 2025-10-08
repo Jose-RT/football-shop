@@ -83,3 +83,86 @@
   {% endif %}
 </div>
 {% endblock %}
+
+<script>
+const csrftoken = (name='csrftoken') => {
+  const v = document.cookie.split('; ').find(row => row.startsWith(name+'='));
+  return v ? v.split('=')[1] : '';
+};
+
+async function refreshProducts(){
+  const grid = document.getElementById('product-grid');
+  const btn = document.getElementById('refresh-btn');
+  btn && btn.classList.add('disabled');
+  try {
+    const res = await fetch('/products/json/');
+    if(!res.ok) throw new Error('Fetch failed');
+    const data = await res.json();
+    grid.innerHTML = data.html; // jika backend kirim partial html
+  } catch (e) {
+    showToast('Error memuat produk', 'danger');
+  } finally {
+    btn && btn.classList.remove('disabled');
+  }
+}
+
+function showToast(message, type='success'){
+  const container = document.getElementById('toast-container');
+  const id = 'toast-'+Date.now();
+  const toastHTML = `
+    <div id="${id}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>`;
+  container.insertAdjacentHTML('beforeend', toastHTML);
+  const el = document.getElementById(id);
+  const toast = new bootstrap.Toast(el);
+  toast.show();
+}
+
+document.addEventListener('submit', async (e) => {
+  if(!e.target.matches('#product-create-form')) return;
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    const formData = new FormData(form);
+    const res = await fetch('/products/create/ajax/', {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrftoken()},
+      body: formData
+    });
+    const data = await res.json();
+    if(res.ok && data.success){
+      // insert new card at top
+      const grid = document.getElementById('product-grid');
+      grid.insertAdjacentHTML('afterbegin', data.html);
+      bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+      showToast('Product berhasil ditambahkan', 'success');
+    } else {
+      // show errors, asumsi errors in data.errors
+      showFormErrors(form, data.errors);
+    }
+  } catch (err) {
+    showToast('Terjadi error saat menambahkan', 'danger');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+function showFormErrors(form, errors){
+  // clear previous errors
+  form.querySelectorAll('.invalid-feedback').forEach(n=>n.remove());
+  for(const name in errors){
+    const field = form.querySelector('[name="'+name+'"]');
+    if(field){
+      field.classList.add('is-invalid');
+      const html = `<div class="invalid-feedback">${errors[name].join(', ')}</div>`;
+      field.insertAdjacentHTML('afterend', html);
+    }
+  }
+}
+</script>

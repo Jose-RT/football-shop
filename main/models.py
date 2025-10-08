@@ -15,3 +15,11 @@ class Product(models.Model):
     def __str__(self):
         return self.name
     
+# class Book(models.Model):
+#     id = models.UUIDField()
+#     title = models.CharField(max_length=255)
+
+# class Author(models.Model):
+#     bio = models.CharField()
+#     books = models.ManyToManyField(Book)
+#     user = models.OneToOneField(User)

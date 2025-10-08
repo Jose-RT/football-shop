@@ -10,6 +10,9 @@ from django.urls import reverse, reverse_lazy
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
 
 @login_required(login_url='/login')
 def show_main(request):
@@ -128,3 +131,45 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return response
+
+@login_required
+@require_POST
+def product_create_ajax(request):
+    form = ProductForm(request.POST)
+    if form.is_valid():
+        product = form.save(commit=False)
+        product.user = request.user
+        product.save()
+        # render single product card partial to send back
+        html = render_to_string('partials/product_card.html', {'product': product, 'user': request.user}, request=request)
+        return JsonResponse({'success': True, 'html': html})
+    else:
+        # return form errors
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    
+@login_required
+@require_POST
+def product_edit_ajax(request, id):
+    product = get_object_or_404(Product, pk=id)
+    if product.user and product.user != request.user:
+        return JsonResponse({'success': False, 'error': 'Forbidden'}, status=403)
+    form = ProductForm(request.POST, instance=product)
+    if form.is_valid():
+        product = form.save()
+        html = render_to_string('partials/product_card.html', {'product': product, 'user': request.user}, request=request)
+        return JsonResponse({'success': True, 'html': html})
+    return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+@login_required
+@require_POST
+def product_delete_ajax(request, id):
+    product = get_object_or_404(Product, pk=id)
+    if product.user and product.user != request.user:
+        return JsonResponse({'success': False, 'error': 'Forbidden'}, status=403)
+    product.delete()
+    return JsonResponse({'success': True})
+
+def product_list_partial(request):
+    products = Product.objects.all()
+    html = render_to_string('partials/product_list.html', {'products': products, 'user': request.user}, request=request)
+    return JsonResponse({'html': html})
