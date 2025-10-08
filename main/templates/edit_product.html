@@ -1,40 +1,103 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block content %}
 {% include 'navbar.html' %}
+
 <div class="container my-5">
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h4 class="card-title mb-3">Edit Product</h4>
-          <p class="text-muted mb-4">Ubah informasi untuk <strong>{{ product.name }}</strong></p>
+          <h3 class="h5 mb-3">Edit Product</h3>
+          <p class="text-muted mb-3">Mengubah data <strong>{{ product.name }}</strong></p>
 
-          <form method="post" novalidate>
+          <form id="product-edit-form" method="post" novalidate>
             {% csrf_token %}
-            {% for field in form %}
-              <div class="mb-3">
-                <label class="form-label">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                  <div class="form-text">{{ field.help_text }}</div>
-                {% endif %}
-                {% for err in field.errors %}
-                  <div class="text-danger small mt-1">{{ err }}</div>
-                {% endfor %}
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+            </div>
+
+            <div class="mb-3 row">
+              <div class="col">
+                <label class="form-label">Price</label>
+                <input type="number" name="price" class="form-control" value="{{ product.price }}" min="0" required>
               </div>
-            {% endfor %}
+              <div class="col">
+                <label class="form-label">Stock</label>
+                <input type="number" name="stock" class="form-control" value="{{ product.stock }}" min="0" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Category</label>
+              <input type="text" name="category" class="form-control" value="{{ product.category }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Thumbnail URL</label>
+              <input type="url" name="thumbnail" class="form-control" value="{{ product.thumbnail }}">
+            </div>
 
             <div class="d-flex justify-content-end gap-2">
               <a href="{% url 'main:show_main' %}" class="btn btn-outline-secondary">Cancel</a>
-              <button type="submit" class="btn btn-success">Save Changes</button>
+              <button type="submit" class="btn btn-soft-purple">Save Changes</button>
             </div>
           </form>
 
+          <div id="edit-form-errors" class="mt-3"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:11">
+  <div id="toast-container"></div>
+</div>
+
+<script>
+document.addEventListener('submit', async (e) => {
+  if (!e.target.matches('#product-edit-form')) return;
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  const productId = "{{ product.id|escapejs }}";
+  // clear previous field errors
+  form.querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+  form.querySelectorAll('.invalid-feedback').forEach(el=>el.remove());
+
+  try {
+    const data = new FormData(form);
+    const res = await fetch(`/products/${productId}/edit/ajax/`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': (document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))||'').split('=')[1]},
+      body: data
+    });
+    const result = await res.json();
+    if (res.ok && result.success) {
+      showToast('Product berhasil diperbarui', 'success');
+      // redirect back to main or update DOM
+      window.location.href = "{% url 'main:show_main' %}";
+    } else {
+      if (result.errors) {
+        for (const name in result.errors){
+          const field = form.querySelector('[name="'+name+'"]');
+          if(field){
+            field.classList.add('is-invalid');
+            field.insertAdjacentHTML('afterend', `<div class="invalid-feedback">${result.errors[name].join(', ')}</div>`);
+          }
+        }
+      } else {
+        showToast('Gagal update product', 'danger');
+      }
+    }
+  } catch (err) {
+    showToast('Terjadi error jaringan', 'danger');
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
 {% endblock %}
