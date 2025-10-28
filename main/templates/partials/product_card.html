@@ -1,20 +1,55 @@
+{% load static %}
 <div class="col" id="product-{{ product.id }}">
   <div class="card h-100 shadow-sm">
-    <img src="{{ product.thumbnail|default:static('image/no-products.png') }}" class="card-img-top" style="object-fit:contain; height:220px;" alt="{{ product.name }}">
+    {# IMAGE: tangani ImageField (.url) atau URL string #}
+    {% if product.thumbnail %}
+      {% if product.thumbnail.url %}
+        <img src="{{ product.thumbnail.url }}" class="card-img-top" style="object-fit:contain; height:220px;" alt="{{ product.name }}">
+      {% else %}
+        <img src="{{ product.thumbnail }}" class="card-img-top" style="object-fit:contain; height:220px;" alt="{{ product.name }}">
+      {% endif %}
+    {% else %}
+      <img src="{% static 'image/no-products.png' %}" class="card-img-top" style="object-fit:contain; height:220px;" alt="{{ product.name }}">
+    {% endif %}
+
     <div class="card-body d-flex flex-column">
-      <h5 class="card-title mb-1 text-danger">{{ product.name }}</h5>
-      <p class="text-muted small mb-1">{{ product.brand }}</p>
-      <p class="text-muted small mb-1">{{ product.category }}</p>
+      <h5 class="card-title mb-1 text-danger">{{ product.name|default_if_none:"" }}</h5>
+
+      {# Brand (tampilkan No Brand jika kosong) #}
+      {% if product.brand %}
+        <p class="text-muted small mb-1">{{ product.brand }}</p>
+      {% else %}
+        <p class="text-muted small mb-1">No Brand</p>
+      {% endif %}
+
+      {# Category (hanya tampil kalau ada) #}
+      {% if product.category %}
+        <p class="text-muted small mb-1">{{ product.category }}</p>
+      {% endif %}
+
       {% if product.is_featured %}
         <span class="badge bg-danger mb-2">Featured</span>
       {% endif %}
+
       <p class="fw-bold text-success mb-2">Rp {{ product.price }}</p>
-      <p class="text-truncate mb-3" style="max-height:3.6em;">{{ product.description }}</p>
-      <div class="mt-auto d-flex justify-content-between">
-        <a href="{% url 'main:product_detail' product.id %}" class="btn btn-sm btn-outline-primary">Detail</a>
-        {% if product.user == user %}
-          <a href="#" onclick="editProductOpen('{{ product.id }}')" class="btn btn-sm btn-outline-secondary">Edit</a>
-          <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ product.id }}')">Delete</button>
+
+      <p class="text-truncate mb-3" style="max-height:3.6em;">{{ product.description|default_if_none:"" }}</p>
+
+      <div class="mt-auto d-flex justify-content-between align-items-center" style="min-height:48px;">
+        {% if product.id %}
+          <a href="{% url 'main:product_detail' product.id %}" class="btn btn-sm btn-outline-primary">Detail</a>
+        {% else %}
+          <span class="text-muted">Invalid product</span>
+        {% endif %}
+
+        {# show Edit/Delete hanya kalau owner; gunakan request.user untuk konsistensi #}
+        {% if request.user.is_authenticated and product.user == request.user %}
+          <div class="d-flex gap-2">
+            <a href="#" onclick="editProductOpen('{{ product.id }}')" class="btn btn-sm btn-outline-secondary">Edit</a>
+            <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ product.id }}')">Delete</button>
+          </div>
+        {% else %}
+          <div style="min-width:120px"></div>
         {% endif %}
       </div>
     </div>

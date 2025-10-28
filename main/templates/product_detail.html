@@ -21,8 +21,8 @@
           <a href="{% url 'main:show_main' %}" class="btn btn-outline-secondary">Back</a>
           {% if product.user and product.user == user %}
             <a href="{% url 'main:product_edit' product.id %}" class="btn btn-soft-purple ms-2">Edit</a>
-            {% if news.user %}
-            <p>Poster: {{ news.user.username }}</p>
+            {% if product.user %}
+            <p>Poster: {{ product.user }}</p>
             {% else %}
                 <p>Poster: Anonymous</p>
             {% endif %}

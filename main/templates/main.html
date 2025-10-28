@@ -43,10 +43,14 @@
       <h1 class="h3 mb-0 text-danger fw-bold">Manchaland Store</h1>
       <small class="text-muted">PBP E</small>
       <div class="mt-2">
-        <span class="me-2">Logged in as: <strong>{{ user.username }}</strong></span>
+        <span class="me-2">Logged in as: <strong>{{ user }}</strong></span>
         <span class="text-muted">| Last login: <strong>{{ last_login }}</strong></span>
       </div>
     </div>
+
+    <button id="refresh-btn" class="btn btn-outline-secondary" type="button" title="Refresh products">
+      Refresh
+    </button>
 
     <div class="mt-3 mt-md-0 d-flex gap-2">
       <button type="button" class="btn btn-soft-pink" data-bs-toggle="modal" data-bs-target="#productModal">
@@ -83,37 +87,7 @@
     <!-- Product Grid -->
     <div id="product-grid" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
       {% for product in products %}
-      <div class="col" id="product-{{ product.id }}">
-        <div class="card h-100 shadow-sm">
-          {% if product.thumbnail %}
-            <img src="{{ product.thumbnail }}" class="card-img-top" style="object-fit:contain; height:220px;" alt="{{ product.name }}">
-          {% else %}
-            <img src="{% static 'image/no-products.png' %}" class="card-img-top" style="object-fit:contain; height:220px;" alt="no image">
-          {% endif %}
-
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title mb-1 text-danger">{{ product.name }}</h5>
-            <p class="text-muted small mb-2">{{ product.category }}</p>
-            <p class="fw-bold text-success mb-2">Rp {{ product.price }}</p>
-            <p class="text-truncate mb-3" style="max-height:3.6em;">{{ product.description }}</p>
-
-            <div class="mt-auto d-flex justify-content-between align-items-center">
-              <a href="{% url 'main:product_detail' product.id %}" class="btn btn-sm btn-outline-primary">Detail</a>
-
-              {% if product.user and product.user == user %}
-              <div class="d-flex gap-2">
-                <a href="{% url 'main:product_edit' product.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-
-                <form method="post" action="{% url 'main:product_delete' product.id %}" onsubmit="return confirm('Delete this product?');">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                </form>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
+        {% include 'partials\product_card.html' with product=product %}
       {% endfor %}
     </div>
   {% endif %}
@@ -188,16 +162,40 @@ async function refreshProducts(){
   const btn = document.getElementById('refresh-btn');
   btn && btn.classList.add('disabled');
   try {
-    const res = await fetch('/products/json/');
-    if(!res.ok) throw new Error('Fetch failed');
+    const res = await fetch('/products/json/', { credentials: 'same-origin' });
+    if(!res.ok) {
+      const txt = await res.text();
+      console.error('refresh failed', res.status, txt.slice(0,300));
+      throw new Error('Fetch failed');
+    }
     const data = await res.json();
     grid.innerHTML = data.html;
+
+    // normalize images (pindah data-src -> src & ubah relative -> absolute jika perlu)
+    normalizeImageSrcs(grid);
+
   } catch (e) {
+    console.error(e);
     showToast('Error memuat produk', 'danger');
   } finally {
     btn && btn.classList.remove('disabled');
   }
 }
+
+function normalizeImageSrcs(container){
+  if(!container) container = document.getElementById('product-grid');
+  container.querySelectorAll('img').forEach(img => {
+    if(img.dataset && img.dataset.src && !img.src) {
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+    }
+    const src = img.getAttribute('src') || '';
+    if(src && !/^(https?:)?\/\//i.test(src) && !src.startsWith('/')) {
+      img.src = new URL(src, window.location.origin + '/').href;
+    }
+  });
+}
+
 
 function showToast(message, type='success'){
   const container = document.getElementById('toast-container');

@@ -8,64 +8,224 @@ function getCSRFToken() {
   return '';
 }
 
+// Create / edit form submission
 document.addEventListener('submit', async (e) => {
+  // handle create/edit form (modal)
   if (!e.target.matches('#product-create-form')) return;
   e.preventDefault();
   const form = e.target;
   const btn = form.querySelector('button[type="submit"]');
-  btn.disabled = true;
+  btn && (btn.disabled = true);
 
-  form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-  form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+  // clear previous validation
+  form.querySelectorAll('.is-invalid').forEach(x => x.classList.remove('is-invalid'));
+  form.querySelectorAll('.invalid-feedback').forEach(x => x.remove());
+
+  const editing = form.dataset.editing === 'true';
+  const id = form.dataset.id;
+  const fd = new FormData(form);
 
   try {
-    const fd = new FormData(form);
-
-    const resp = await fetch('/products/create/ajax/', {
+    const url = editing ? `/products/${id}/edit/ajax/` : '/products/create/ajax/';
+    const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'X-CSRFToken': getCSRFToken()
-      },
-      body: fd
+      body: fd,
+      headers: { 'X-CSRFToken': getCSRFToken() }
     });
 
-    if (resp.status === 400) {
-      const data = await resp.json();
+    if (res.status === 400) {
+      const data = await res.json();
       if (data.errors) {
-        showFormErrors(form, data.errors);
+        // show validation messages
+        for (const name in data.errors) {
+          const field = form.querySelector(`[name="${name}"]`);
+          if (field) {
+            field.classList.add('is-invalid');
+            const msg = Array.isArray(data.errors[name]) ? data.errors[name].join(', ') : data.errors[name];
+            const div = document.createElement('div');
+            div.className = 'invalid-feedback';
+            div.innerText = msg;
+            field.insertAdjacentElement('afterend', div);
+          }
+        }
       } else {
-        showToast('Validation failed', 'danger');
+        showToast('Validasi gagal', 'warning');
       }
-    } else if (!resp.ok) {
-      showToast('Request failed', 'danger');
+    } else if (!res.ok) {
+      showToast('Permintaan gagal', 'danger');
     } else {
-      const data = await resp.json();
+      const data = await res.json();
       if (data.success) {
-        // insert HTML returned
-        const grid = document.getElementById('product-grid');
-        if (grid) {
-          grid.insertAdjacentHTML('afterbegin', data.html);
+        if (editing) {
+          // replace existing card
+          const existing = document.getElementById(`product-${id}`);
+          if (existing) existing.outerHTML = data.html;
         } else {
-          // or refresh whole list
-          await refreshProducts();
+          // insert new card at top if grid exists
+          const grid = document.getElementById('product-grid');
+          if (grid) grid.insertAdjacentHTML('afterbegin', data.html);
         }
         // hide modal
         const modalEl = document.getElementById('productModal');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
+        const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.hide();
+        // reset form
         form.reset();
-        showToast('Product added!', 'success');
+        form.dataset.editing = 'false';
+        delete form.dataset.id;
+        showToast(editing ? 'Produk diperbarui' : 'Produk ditambahkan', 'success');
       } else {
-        showToast('Unknown error', 'danger');
+        showToast('Terjadi kesalahan', 'danger');
       }
     }
   } catch (err) {
     console.error(err);
-    showToast('Network error', 'danger');
+    showToast('Kesalahan jaringan', 'danger');
   } finally {
-    btn.disabled = false;
+    btn && (btn.disabled = false);
   }
 });
+
+async function editProductOpen(id) {
+  try {
+    // existing serializer endpoint: /json/<id>/ -> returns Django serializer array
+    const res = await fetch(`/json/${id}/`);
+    if (!res.ok) throw new Error('Failed to fetch product data');
+    const data = await res.json();
+    if (!Array.isArray(data) || !data[0]) throw new Error('Invalid product data');
+    const fields = data[0].fields;
+
+    const form = document.getElementById('product-create-form');
+    form.querySelector('[name="name"]').value = fields.name || '';
+    form.querySelector('[name="price"]').value = fields.price ?? '';
+    form.querySelector('[name="stock"]').value = fields.stock ?? '';
+    form.querySelector('[name="brand"]').value = fields.brand || '';
+    form.querySelector('[name="category"]').value = fields.category || '';
+    form.querySelector('[name="thumbnail"]').value = fields.thumbnail || '';
+    form.querySelector('[name="description"]').value = fields.description || '';
+    const featuredEl = form.querySelector('[name="is_featured"]');
+    if (featuredEl) featuredEl.checked = fields.is_featured === true;
+
+    // mark as editing
+    form.dataset.editing = 'true';
+    form.dataset.id = id;
+
+    // update modal title/button text
+    const modalEl = document.getElementById('productModal');
+    modalEl.querySelector('h5') && (modalEl.querySelector('h5').innerText = 'Edit Product');
+    modalEl.querySelector('button[type="submit"]').innerText = 'Save changes';
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  } catch (err) {
+    console.error(err);
+    showToast('Gagal memuat data produk', 'danger');
+  }
+}
+
+let deleteTargetId = null;
+function confirmDelete(id, name = '') {
+  deleteTargetId = id;
+  const nameEl = document.getElementById('delete-modal-product-name');
+  if (nameEl) nameEl.innerText = name ? `Produk: ${name}` : '';
+  const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  modal.show();
+}
+
+document.getElementById && document.getElementById('delete-confirm-btn')?.addEventListener('click', async (e) => {
+  if (!deleteTargetId) return;
+  const btn = e.target;
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/products/${deleteTargetId}/delete/ajax/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRFToken() }
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      const el = document.getElementById(`product-${deleteTargetId}`);
+      if (el) el.remove();
+      showToast('Produk dihapus', 'warning');
+    } else if (res.status === 403) {
+      showToast('Aksi tidak diizinkan', 'danger');
+    } else {
+      showToast('Gagal menghapus produk', 'danger');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Kesalahan jaringan', 'danger');
+  } finally {
+    btn.disabled = false;
+    deleteTargetId = null;
+    const modalEl = document.getElementById('confirmDeleteModal');
+    bootstrap.Modal.getInstance(modalEl)?.hide();
+  }
+});
+
+// Login / register AJAX
+document.addEventListener('submit', async (e) => {
+  if (e.target.matches('#login-form') || e.target.matches('#register-form')) {
+    e.preventDefault();
+    const form = e.target;
+    form.querySelectorAll('.is-invalid').forEach(x => x.classList.remove('is-invalid'));
+    form.querySelectorAll('.invalid-feedback').forEach(x => x.remove());
+    const fd = new FormData(form);
+    const url = form.matches('#login-form') ? '/login/ajax/' : '/register/ajax/';
+    const btn = form.querySelector('button[type="submit"]');
+    btn && (btn.disabled = true);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRFToken': getCSRFToken() }
+      });
+      if (res.status === 400) {
+        const data = await res.json();
+        if (data.errors) {
+          // render field errors or non-field errors
+          for (const name in data.errors) {
+            const field = form.querySelector(`[name="${name}"]`);
+            if (field) {
+              field.classList.add('is-invalid');
+              const el = document.createElement('div');
+              el.className = 'invalid-feedback';
+              el.innerText = Array.isArray(data.errors[name]) ? data.errors[name].join(', ') : data.errors[name];
+              field.insertAdjacentElement('afterend', el);
+            } else {
+              // non-field error -> toast
+              showToast(Array.isArray(data.errors[name]) ? data.errors[name].join(', ') : data.errors[name], 'warning');
+            }
+          }
+        } else {
+          showToast('Validasi gagal', 'warning');
+        }
+      } else if (!res.ok) {
+        showToast('Permintaan gagal', 'danger');
+      } else {
+        const data = await res.json();
+        if (data.success) {
+          showToast(form.matches('#login-form') ? 'Login berhasil' : 'Register berhasil', 'success');
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            // fallback reload
+            window.location.reload();
+          }
+        } else {
+          showToast('Gagal', 'danger');
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Kesalahan jaringan', 'danger');
+    } finally {
+      btn && (btn.disabled = false);
+    }
+  }
+});
+
+// wire refresh button
+document.getElementById('refresh-btn')?.addEventListener('click', refreshProducts);
 
 function showFormErrors(form, errors) {
   for (const name in errors) {
@@ -83,46 +243,26 @@ function showFormErrors(form, errors) {
 
 
 async function refreshProducts() {
-  const list = document.getElementById("product-list");
-  list.innerHTML = "<div class='text-center p-5 text-muted'>Loading...</div>";
+  const grid = document.getElementById('product-grid');
+  const btn = document.getElementById('refresh-btn');
+  if (!grid) return;
+  // show loading placeholder
+  grid.innerHTML = `<div class="text-center p-5 text-muted"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><div class="mt-2">Memuat produk...</div></div>`;
+  btn && btn.setAttribute('disabled', 'disabled');
   try {
-    const res = await fetch("/products/json/");
+    const res = await fetch('/products/json/');
+    if (!res.ok) throw new Error('Fetch failed');
     const data = await res.json();
-    list.innerHTML = data.html;
-    showToast("Product list updated!", "success");
-  } catch {
-    list.innerHTML = "<div class='text-center text-danger p-5'>Failed to load products.</div>";
-    showToast("Failed to refresh", "danger");
+    grid.innerHTML = data.html || `<div class="text-center p-5 text-muted">Tidak ada produk.</div>`;
+    showToast('Daftar produk diperbarui', 'info');
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = `<div class="text-center text-danger p-5">Gagal memuat produk. Coba lagi.</div>`;
+    showToast('Gagal memuat produk', 'danger');
+  } finally {
+    btn && btn.removeAttribute('disabled');
   }
 }
-
-document.getElementById("product-create-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const btn = form.querySelector("button[type='submit']");
-  btn.disabled = true;
-
-  const formData = new FormData(form);
-  const res = await fetch("/products/create/ajax/", {
-    method: "POST",
-    headers: { "X-CSRFToken": getCSRFToken() },
-    body: formData,
-  });
-
-  const data = await res.json();
-  btn.disabled = false;
-
-  if (data.success) {
-    const grid = document.querySelector("#product-grid");
-    grid.insertAdjacentHTML("afterbegin", data.html);
-    showToast("Product added!", "success");
-    const modal = bootstrap.Modal.getInstance(document.getElementById("productModal"));
-    modal.hide();
-    form.reset();
-  } else {
-    showToast("Failed to add product", "danger");
-  }
-});
 
 async function confirmDelete(id) {
   if (!confirm("Are you sure you want to delete this product?")) return;
@@ -139,17 +279,28 @@ async function confirmDelete(id) {
   }
 }
 
-function showToast(msg, type = "primary") {
-  const container = document.getElementById("toast-container");
-  const id = "toast-" + Date.now();
+
+function showToast(message, type = 'success', autohide = true) {
+  // type: 'success'|'danger'|'warning'|'info'
+  const container = document.getElementById('toast-container') || (() => {
+    const d = document.createElement('div');
+    d.id = 'toast-container';
+    d.className = 'position-fixed bottom-0 end-0 p-3';
+    d.style.zIndex = 2000;
+    document.body.appendChild(d);
+    return d;
+  })();
+
+  const id = 'toast-' + Date.now();
   const html = `
-  <div id="${id}" class="toast align-items-center text-bg-${type} border-0" role="alert">
-    <div class="d-flex">
-      <div class="toast-body">${msg}</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  </div>`;
-  container.insertAdjacentHTML("beforeend", html);
-  const toastEl = document.getElementById(id);
-  new bootstrap.Toast(toastEl).show();
-}
+    <div id="${id}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>`;
+  container.insertAdjacentHTML('beforeend', html);
+  const el = document.getElementById(id);
+  const t = new bootstrap.Toast(el, { autohide });
+  t.show();
+  }

@@ -25,7 +25,6 @@ def show_main(request):
 
     context = {
         "products": products,
-        'user': request.user.username,
         'shop': 'Football Shop',
         'name': 'Manchaland Store',
         'class': 'PBP E',
@@ -40,7 +39,6 @@ def create_product(request):
         product_entry.user = request.user
         product_entry.save()
         return redirect('main:show_main')
-    
     context = {
         'form': form
     }
@@ -132,6 +130,33 @@ def logout_user(request):
     response.delete_cookie('last_login')
     return response
 
+@require_POST
+def login_ajax(request):
+    form = AuthenticationForm(data=request.POST)
+    if form.is_valid():
+        user = form.get_user()
+        login(request, user)
+        response = JsonResponse({'success': True, 'redirect': reverse('main:show_main')})
+        response.set_cookie('last_login', str(datetime.datetime.now()))
+        return response
+    else:
+        # return form errors in JSON-friendly format
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+@require_POST
+def register_ajax(request):
+    form = UserCreationForm(request.POST)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({'success': True, 'message': 'Account created'})
+    else:
+        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+@require_POST
+def logout_ajax(request):
+    logout(request)
+    return JsonResponse({'success': True, 'redirect': reverse('main:login')})
+
 @login_required
 @require_POST
 def product_create_ajax(request):
@@ -141,7 +166,7 @@ def product_create_ajax(request):
         product.user = request.user
         product.save()
         # render single product card partial to send back
-        html = render_to_string('partials/product_card.html', {'product': product, 'user': request.user}, request=request)
+        html = render_to_string('partials/product_card.html', {'product': product}, request=request)
         return JsonResponse({'success': True, 'html': html})
     else:
         # return form errors
@@ -171,5 +196,5 @@ def product_delete_ajax(request, id):
 
 def product_list_partial(request):
     products = Product.objects.all()
-    html = render_to_string('partials/product_list.html', {'products': products, 'user': request.user}, request=request)
+    html = render_to_string('partials/product_list.html', {'products': products}, request=request)
     return JsonResponse({'html': html})

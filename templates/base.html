@@ -23,5 +23,21 @@
   <!-- Bootstrap JS + Popper -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+  <script src="{% static 'js/product_ajax.js' %}"></script>
+
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body p-4 text-center">
+        <h5 class="mb-3">Hapus produk?</h5>
+          <p class="text-muted" id="delete-modal-product-name"></p>
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+            <button id="delete-confirm-btn" type="button" class="btn btn-danger">Hapus</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

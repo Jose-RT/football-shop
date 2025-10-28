@@ -1,32 +1,60 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block meta %}
-<title>Register</title>
-{% endblock meta %}
+<title>Register — Manchaland Store</title>
+{% endblock %}
 
 {% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-center mb-4 fw-bold text-danger">Create Account</h3>
 
-<div>
-  <h1>Register</h1>
+          <form method="POST" id="register-form">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              {{ form.username }}
+              {% if form.username.errors %}
+                <div class="text-danger small mt-1">{{ form.username.errors|join:", " }}</div>
+              {% endif %}
+            </div>
 
-  <form method="POST">
-    {% csrf_token %}
-    <table>
-      {{ form.as_table }}
-      <tr>
-        <td></td>
-        <td><input type="submit" name="submit" value="Daftar" /></td>
-      </tr>
-    </table>
-  </form>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              {{ form.password1 }}
+              {% if form.password1.errors %}
+                <div class="text-danger small mt-1">{{ form.password1.errors|join:", " }}</div>
+              {% endif %}
+            </div>
 
-  {% if messages %}
-  <ul>
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
-  {% endif %}
+            <div class="mb-3">
+              <label class="form-label">Confirm Password</label>
+              {{ form.password2 }}
+              {% if form.password2.errors %}
+                <div class="text-danger small mt-1">{{ form.password2.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-success small">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+
+            <button type="submit" class="btn btn-soft-pink w-100">Register</button>
+          </form>
+
+          <div class="text-center mt-3">
+            <p class="text-muted mb-0">Already have an account?</p>
+            <a href="{% url 'main:login' %}" class="text-decoration-none">Login here</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-{% endblock content %}
+{% endblock %}

@@ -1,9 +1,7 @@
-<div class="row" id="product-grid">
-  {% if products %}
-    {% for product in products %}
-      {% include 'partials/product_card.html' %}
-    {% endfor %}
-  {% else %}
-    {% include 'partials/no_products.html' %}
-  {% endif %}
-</div>
+{% if products %}
+  {% for product in products %}
+    {% include 'partials/product_card.html' with product=product %}
+  {% endfor %}
+{% else %}
+  {% include 'partials/no_products.html' %}
+{% endif %}

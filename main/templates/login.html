@@ -5,28 +5,36 @@
 {% endblock meta %}
 
 {% block content %}
-<div class="login">
-  <h1>Login</h1>
-
-  <form method="POST" action="">
-    {% csrf_token %}
-    <table>
-      {{ form.as_table }}
-      <tr>
-        <td></td>
-        <td><input class="btn login_btn" type="submit" value="Login" /></td>
-      </tr>
-    </table>
-  </form>
-
-  {% if messages %}
-  <ul>
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-  </ul>
-  {% endif %} Don't have an account yet?
-  <a href="{% url 'main:register' %}">Register Now</a>
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-center mb-4 fw-bold text-danger">Login</h3>
+          <form method="POST" id="login-form">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              {{ form.username }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              {{ form.password }}
+            </div>
+            {% if form.errors %}
+              <div class="alert alert-danger small">
+                Invalid username or password.
+              </div>
+            {% endif %}
+            <button type="submit" class="btn btn-soft-pink w-100">Login</button>
+          </form>
+          <div class="text-center mt-3">
+            <p class="text-muted mb-0">Don't have an account?</p>
+            <a href="{% url 'main:register' %}" class="text-decoration-none">Register Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
 {% endblock content %}
