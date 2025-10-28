@@ -55,3 +55,54 @@ Tugas 4:
     6. Mendaftarkan cookies untuk last login 
     7. Memasukan user ke model
     8. Migrate (jangan lupa)
+
+Tugas 5:
+1. Urutan prioritas pengambilan CSS selector 
+    1. Selector elemen/type (div, p) dan pseudo-element (::before) — spesifitas: 0,0,0,1
+    2. Class, atribut ([type="text"]) dan pseudo-class (:hover) — spesifitas: 0,0,1,0
+    3. ID (#main) — spesifitas: 0,1,0,0
+    4. Inline style (style="...") — spesifitas: 1,0,0,0
+    5. !important — overrides hampir semua; jika dua deklarasi sama-sama !important, maka yang lebih spesifik atau yang muncul belakangan menang.
+    6. Jika spesifitas sama → yang muncul belakangan di stylesheet (atau file yang di-load nanti) menang.
+2. Responsive design konsep yang penting
+    Pengguna mengakses site dari layar yang berbeda (HP, tablet, laptop). Reponsive design membuat UI tetap teratur. 
+3. Margin, border, dan padding
+    1. Margin: ruang di luar border, memisahkan satu elemen sama yg lain
+    2. Border: garis di sekitar box antara margin dan padding
+    3. Padding: space di dalam border
+    Contoh:
+    .card {
+        margin: 16px;
+        border: 1px solid #ccc;
+        padding: 12px;
+    }
+4. Flex box dan grid layout
+    1. Flex box (CSS Flexible Box): baris atau kolom, alignment, responsive kecil (navbar, centering)
+    2. Grid (CSS Grid Layout): baris *dan* kolom, grid kompleks, magazine layout, dashboard
+5. Implementasi Checklist
+    Tulis HTML (nav, register, login)
+
+Tugas 6:
+1. Synchronous request dan asynchronous request
+    1. Synchronous request: browser menunggu response sebelum melanjutkan (cth: submit form tradisional maka halaman reload)
+    2. Asynchronous request: request dikirim di background (cthnya AJAX), bisa update sebagian halaman tanpa reload
+2. Cara kerja AJAX di Django
+    1. Client: JavaScript mengirim permintaan ke endpoint Django (POST atau GET)
+    2. Include CSRF token (untuk POST/PUT/DELETE)
+    3. Server (Django view): menerima request, memproses (validasi, auth), lalu mengembalikan JsonResponse atau status error
+    4. Client: menerima JSON, parsing, kemudian memanipulasi DOM sesuai hasil (menampilkan pesan, update list, redirect, dll)
+    5. Tidak ada reload halaman penuh kecuali redirect client-side
+3. Keuntungan menggunakan AJAX
+    1. UI lebih halus dengan transisi/animation saat update
+    2. Pengalaman interaktif dengan form submit tanpa reload, live search, dan infinite scroll (misalnya utk sosial media)
+    3. Hemat server resources: tidak mengirim ulang seluruh HTML dan lebih cepat
+4. Keamanan AJAX untuk Login/Register
+    1. Gunakan HTTPS
+    2. CSRF protection
+    3. Validasi server side (jangan client side)
+    4. Gunakan Django auth dan session
+    5. Input dan output sanitization (bersihkan dulu)
+5. AJAX mempengaruhi UX
+    1. Fitur real time (validasi, auto-save) meningkatkan kenyamanan utk user
+    2. lebih cepat dan responsif (tanpa full reload)
+    3. Pengalaman interaktif seperti infinite scroll untuk sosial media

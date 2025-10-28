@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
+from zoneinfo import ZoneInfo
 
 @login_required(login_url='/login')
 def show_main(request):
@@ -115,8 +116,9 @@ def login_user(request):
       if form.is_valid():
         user = form.get_user()
         login(request, user)
+        wib_time = datetime.datetime.now(tz=ZoneInfo("Asia/Jakarta"))
         response = HttpResponseRedirect(reverse("main:show_main"))
-        response.set_cookie('last_login', str(datetime.datetime.now()))
+        response.set_cookie('last_login', str(wib_time))
         return response
 
    else:
