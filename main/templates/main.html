@@ -72,6 +72,16 @@
         My Products
       </a>
     </div>
+    <div class="btn-group" role="group" aria-label="filter">
+      <a href="?{% if request.GET.filter %}filter={{ request.GET.filter }}&{% endif %}sort=price-asc"
+         class="btn {% if request.GET.sort == 'price-asc' %}btn-soft-red{% else %}btn-outline-secondary{% endif %}">
+        Sort asc
+      </a>
+      <a href="?{% if request.GET.filter %}filter={{ request.GET.filter}}&{% endif %}sort=price-desc"
+         class="btn {% if request.GET.filter == 'price-desc' %}btn-soft-red{% else %}btn-outline-secondary{% endif %}">
+        Sort desc
+      </a>
+    </div>
   </div>
 
   {% if not products %}
